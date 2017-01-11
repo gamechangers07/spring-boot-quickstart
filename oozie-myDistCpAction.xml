@@ -1,0 +1,46 @@
+<workflow-app xmlns="uri:oozie:workflow:0.4" name="oozie-landing-zone-load-hive-table">
+
+    <global>
+        <job-tracker>${jobTracker}</job-tracker>
+        <name-node>${nameNode}</name-node>
+        <configuration>
+            <property>
+                <name>tez.queue.name</name>
+                <value>${queueName}</value>
+            </property>
+        </configuration>
+    </global>
+
+    <credentials>
+        <credential name="hive_credentials" type="hcat">
+            <property>
+                <name>hcat.metastore.uri</name>
+                <value>${metastoreURI}</value>
+            </property>
+            <property>
+                <name>hcat.metastore.principal</name>
+                <value>${metastorePrincipal}</value>
+            </property>
+        </credential>
+    </credentials>
+
+    <start to="myDistCpAction"/>
+	
+	 <action name="myDistCpAction">
+			 <distcp xmlns="uri:oozie:distcp-action:0.1">
+					<job-tracker>${jobTracker}</job-tracker>
+					<name-node>${nameNode}</name-node>      
+					<arg>${commonLocation}/hive-default.xml</arg>
+				   <arg>${projectProvisionPath}/hive-default.xml</arg>
+			</distcp>
+	    <ok to="end"/>
+        <error to="kill"/>
+    </action>
+	
+    <kill name="kill">
+        <message>Action failed , error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+
+    <end name="end"/>
+
+</workflow-app>
